@@ -16,9 +16,9 @@ async function run() {
     try {
         await client.connect()
         const productCollection = client.db('manufacturerProduct').collection('product');
-        app.get('/', (req, res) => {
-            res.send('This is New World')
-        })
+        // app.get('/', (req, res) => {
+        //     res.send('This is New World')
+        // })
 
 
     }
@@ -28,6 +28,9 @@ async function run() {
 }
 run().catch(console.dir)
 
+app.get('/', (req, res) => {
+    res.send('This is New World')
+})
 
 
 
