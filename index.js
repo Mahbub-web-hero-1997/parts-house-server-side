@@ -16,12 +16,26 @@ async function run() {
     try {
         await client.connect()
         const productCollection = client.db('manufacturerProduct').collection('product');
+        const reviewCollection = client.db('manufacturerProduct').collection('review');
         // Get All Parts from Database
         app.get('/product', async (req, res) => {
             const query = {};
             const cursor = productCollection.find(query);
             const product = await cursor.toArray()
             res.send(product)
+        })
+        app.get('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await productCollection.findOne(query);
+            res.send(result)
+        })
+        // get All review
+        app.get('/review', async (req, res) => {
+            const query = {}
+            const cursor = reviewCollection.find(query)
+            const reviews = await cursor.toArray()
+            res.send(reviews)
         })
     }
     finally {
