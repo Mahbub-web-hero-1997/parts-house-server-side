@@ -17,6 +17,7 @@ async function run() {
         await client.connect()
         const productCollection = client.db('manufacturerProduct').collection('product');
         const reviewCollection = client.db('manufacturerProduct').collection('review');
+        const directorsCollection = client.db('manufacturerProduct').collection('directors');
         // Get All Parts from Database
         app.get('/product', async (req, res) => {
             const query = {};
@@ -37,6 +38,14 @@ async function run() {
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
+        // get All directors
+        app.get('/director', async (req, res) => {
+            const query = {}
+            const cursor = directorsCollection.find(query)
+            const reviews = await cursor.toArray()
+            res.send(reviews)
+        })
+
     }
     finally {
 
