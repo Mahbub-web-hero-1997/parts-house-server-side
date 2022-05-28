@@ -8,7 +8,7 @@ const port = process.env.PORT || 5000;
 // user : manufacturer_admin
 // Password : rEP67IAoVyqgGzHH
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wkrlazh.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
@@ -16,6 +16,7 @@ async function run() {
     try {
         await client.connect()
         const productCollection = client.db('manufacturerProduct').collection('product');
+        const orderCollection = client.db('manufacturerProduct').collection('order');
         const reviewCollection = client.db('manufacturerProduct').collection('review');
         const directorsCollection = client.db('manufacturerProduct').collection('directors');
         // Get All Parts from Database
@@ -31,6 +32,21 @@ async function run() {
             const result = await productCollection.findOne(query);
             res.send(result)
         })
+
+        app.post("/orders", async (req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+        });
+
+        app.get("/orders/:email", async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const query = orderCollection.find(filter);
+            const result = await query.toArray();
+            res.send(result);
+        });
+
         // get All review
         app.get('/review', async (req, res) => {
             const query = {}
