@@ -4,6 +4,7 @@ const cors = require('cors')
 require('dotenv').config();
 app.use(cors())
 app.use(express.json())
+const stripe = require('stripe')('sk_test_51L4WwpDRe7DePKUJgqSYEOTpLMx6cBMusBtH5MG0gDexXteUsQtEEOvvjdAlWLfC7ck7fQl1GU54XBr6aUswYTKE00Rc8C7K4L');
 const port = process.env.PORT || 5000;
 // user : manufacturer_admin
 // Password : rEP67IAoVyqgGzHH
@@ -19,6 +20,7 @@ async function run() {
         const orderCollection = client.db('manufacturerProduct').collection('order');
         const reviewCollection = client.db('manufacturerProduct').collection('review');
         const directorsCollection = client.db('manufacturerProduct').collection('directors');
+        const paymentCollection = client.db('manufacturerProduct').collection('payment');
         // Get All Parts from Database
         app.get('/product', async (req, res) => {
             const query = {};
@@ -47,6 +49,21 @@ async function run() {
             res.send(result);
         });
 
+        app.delete("/orders/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(filter);
+            res.send(result);
+        });
+
+        // get user data for token 
+        app.get('/get-payment/:id', async (req, res) => {
+            const id = req.params.id
+            const filter = { _id: ObjectId(id) }
+            const result = await orderCollection.findOne(filter)
+            res.send(result)
+        })
+
         // get All review
         app.get('/review', async (req, res) => {
             const query = {}
@@ -60,6 +77,22 @@ async function run() {
             const cursor = directorsCollection.find(query)
             const reviews = await cursor.toArray()
             res.send(reviews)
+        })
+        // payment intent 
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: price * 100,
+                currency: 'usd',
+                payment_method_types: ['card']
+            })
+            res.send({ clientSecret: paymentIntent.client_secret })
+        })
+        // update user information and service data 
+        app.post('/payment-complete', async (req, res) => {
+            const body = req.body;
+            const result = await paymentCollection.insertOne(body)
+            res.send(result)
         })
 
     }
