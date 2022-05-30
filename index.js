@@ -18,6 +18,7 @@ async function run() {
         await client.connect()
         const productCollection = client.db('manufacturerProduct').collection('product');
         const orderCollection = client.db('manufacturerProduct').collection('order');
+        const userCollection = client.db('manufacturerProduct').collection('user');
         const reviewCollection = client.db('manufacturerProduct').collection('review');
         const directorsCollection = client.db('manufacturerProduct').collection('directors');
         const paymentCollection = client.db('manufacturerProduct').collection('payment');
@@ -71,6 +72,52 @@ async function run() {
             const reviews = await cursor.toArray()
             res.send(reviews)
         })
+        // get profile data 
+        app.get('/get-profile-data', async (req, res) => {
+            const email = req.query.email
+            if (email) {
+                const filter = { email: email }
+                const result = await userCollection.findOne(filter)
+                res.send(result)
+            }
+        })
+        app.put('/token/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: { email }
+            }
+            const result = await userCollection.updateOne(filter, updateDoc, options)
+            console.log(result);
+            res.send(result)
+        })
+
+        // put profile data 
+        app.put('/profile-data/:id', async (req, res) => {
+            const data = req.body
+            const { name, email, address, phone, education, imgUrl } = data
+            const id = req.params.id
+            const filter = { _id: ObjectId(id) }
+            const updateDoc = {
+                $set: data
+            }
+            const result = await userCollection.updateOne(filter, updateDoc)
+            res.send(result)
+        })
+
+        app.put('/add-review', async (req, res) => {
+            const email = req.query.email
+            const data = req.body
+            const filter = { email }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: data
+            };
+            const result = await reviewCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
+
+        })
         // get All directors
         app.get('/director', async (req, res) => {
             const query = {}
@@ -94,6 +141,9 @@ async function run() {
             const result = await paymentCollection.insertOne(body)
             res.send(result)
         })
+
+        // add user review 
+
 
     }
     finally {
